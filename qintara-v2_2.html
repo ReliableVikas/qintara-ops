@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qintara Ops</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+  :root {
+    --forest: #1B3A2D; --gold: #C9963A; --cream: #F7F3ED; --sand: #E8DDD0;
+    --moss: #4A6741; --river: #2E6B8A; --white: #FFFFFF;
+    --danger: #C0392B; --success: #27AE60; --text: #1A1A1A;
+    --muted: #6B7280; --border: #DDD5C8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+  .header { background: var(--forest); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-logo { width: 36px; height: 36px; background: var(--gold); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 18px; color: var(--forest); font-weight: 700; }
+  .header-title h1 { font-size: 16px; font-weight: 700; color: white; }
+  .header-title p { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .header-date { color: rgba(255,255,255,0.6); font-size: 12px; }
+
+  .nav-tabs { background: var(--forest); display: flex; border-top: 1px solid rgba(255,255,255,0.1); overflow-x: auto; }
+  .nav-tab { flex: 1; min-width: 80px; padding: 10px 8px; text-align: center; color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .nav-tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  .card { background: var(--white); border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--forest); margin-bottom: 12px; }
+
+  .morning-greeting { background: linear-gradient(135deg, var(--forest), var(--moss)); border-radius: 14px; padding: 20px; margin-bottom: 16px; color: white; }
+  .morning-greeting h2 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 4px; }
+  .morning-greeting p { font-size: 13px; opacity: 0.7; }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-box { background: var(--white); border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border); }
+
+  /* ADMIN DASHBOARD */
+  .period-btn { padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border); background: white; cursor: pointer; color: var(--muted); }
+  .period-btn.active { background: var(--forest); color: white; border-color: var(--forest); }
+  .dash-mini-box { background: white; border-radius: 10px; padding: 12px 8px; text-align: center; border: 1px solid var(--border); }
+  .dash-mini-num { font-size: 22px; font-weight: 800; color: var(--forest); }
+  .dash-mini-label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .dash-kpi-box { background: white; border-radius: 12px; padding: 14px; border: 1px solid var(--border); }
+  .dash-kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  .dash-kpi-num { font-size: 22px; font-weight: 800; color: var(--forest); }
+  .dash-kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .prop-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .prop-row:last-child { border-bottom: none; }
+  .prop-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; margin: 4px 0; }
+  .prop-bar { height: 6px; background: var(--gold); border-radius: 3px; }
+  .team-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .team-row:last-child { border-bottom: none; }
+  .cash-prop-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .cash-prop-row:last-child { border-bottom: none; }
+  .stat-number { font-size: 28px; font-weight: 700; color: var(--forest); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-box.highlight .stat-number { color: var(--gold); }
+  .stat-box.danger .stat-number { color: var(--danger); }
+
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--forest); margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; background: var(--white); color: var(--text); outline: none; }
+  .form-input:focus { border-color: var(--gold); }
+  .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .amount-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .unit-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+  .unit-tile { padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 2px solid var(--border); background: white; cursor: pointer; text-align: center; user-select: none; -webkit-user-select: none; color: var(--text); }
+  .unit-tile.selected { border-color: var(--gold); background: #FDF6EC; color: var(--forest); font-weight: 700; }
+  .unit-tile.booked-out { border-color: #E8A8A8; background: #FDF0F0; color: var(--danger); cursor: not-allowed; opacity: 0.6; }
+  .unit-summary { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--moss); min-height: 18px; }
+
+  .btn { padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; width: 100%; }
+  .btn-primary { background: var(--forest); color: white; }
+  .btn-gold { background: var(--gold); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; width: auto; border-radius: 6px; }
+  .action-row { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .action-btn { padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .action-btn.wa   { background: #E8F8F0; color: #128C7E; border: 1.5px solid #25D366; }
+  .action-btn.wa:active { background: #25D366; color: white; }
+  .action-btn.edit { background: #E8F0FE; color: #1967D2; border: 1.5px solid #4285F4; }
+  .action-btn.edit:active { background: #4285F4; color: white; }
+  .action-btn.bal  { background: #E8F5E9; color: #2E7D32; border: 1.5px solid #43A047; }
+  .action-btn.bal:active { background: #43A047; color: white; }
+  .action-btn.cancel { background: #FFF; color: var(--muted); border: 1.5px solid var(--border); }
+  .action-btn.cancel:active { background: var(--sand); }
+  .excel-btn { background: #1D6F42; color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+
+  .booking-item { background: var(--white); border-radius: 10px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); border-left: 4px solid var(--gold); }
+  .booking-item.checkin-today { border-left-color: var(--success); }
+  .booking-item.checkout-today { border-left-color: var(--river); }
+  .booking-item.has-balance { border-left-color: var(--danger); }
+  .booking-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .guest-name { font-weight: 700; font-size: 15px; }
+  .booking-prop { font-size: 11px; color: var(--muted); }
+  .booking-dates { font-size: 12px; color: var(--river); font-weight: 500; }
+  .booking-money { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .money-tag { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .money-tag.total { background: #E8F4FD; color: var(--river); }
+  .money-tag.adv { background: #D4EDDA; color: var(--success); }
+  .money-tag.bal { background: #F8D7DA; color: var(--danger); }
+
+  .cash-entry { background: var(--white); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .cash-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .cash-icon.in { background: #D4EDDA; }
+  .cash-icon.out { background: #F8D7DA; }
+  .cash-details { flex: 1; }
+  .cash-desc { font-size: 13px; font-weight: 600; }
+  .cash-sub { font-size: 11px; color: var(--muted); }
+  .cash-amount { font-size: 16px; font-weight: 700; }
+  .cash-amount.in { color: var(--success); }
+  .cash-amount.out { color: var(--danger); }
+
+  .summary-box { background: var(--forest); border-radius: 12px; padding: 16px; color: white; margin-bottom: 14px; }
+  .summary-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .summary-row:last-child { border-bottom: none; font-weight: 700; font-size: 15px; }
+  .summary-row span:last-child { color: var(--gold); }
+
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 14px; font-weight: 700; color: var(--forest); }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--forest); margin-bottom: 16px; }
+
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: var(--forest); color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 600; z-index: 9999; display: none; box-shadow: 0 6px 24px rgba(0,0,0,0.35); white-space: nowrap; max-width: 90vw; text-align: center; }
+  .toast.error { background: var(--danger); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+
+  .filter-chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+  .chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1.5px solid var(--border); background: white; cursor: pointer; white-space: nowrap; color: var(--muted); }
+  .chip.active { background: var(--forest); color: white; border-color: var(--forest); }
+
+  .airbnb-alert { background: #FF5A5F; color: white; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+
+  .whatsapp-format { background: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .whatsapp-format h4 { font-size: 13px; color: #2E7D32; margin-bottom: 8px; }
+  .whatsapp-format code { display: block; font-size: 12px; background: white; padding: 8px; border-radius: 6px; margin-top: 6px; color: #1A1A1A; line-height: 1.8; }
+
+  .conflict-warn { display: none; background: #F8D7DA; border-radius: 8px; padding: 10px; margin-bottom: 12px; font-size: 13px; color: #C0392B; font-weight: 600; }
+
+  /* AVAILABILITY STATUS BAR */
+  .avail-status-bar { background: var(--forest); border-radius: 14px; padding: 16px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-around; }
+  .avail-status-item { text-align: center; flex: 1; }
+  .avail-status-num { display: block; font-size: 26px; font-weight: 700; color: var(--gold); }
+  .avail-status-num.occupied { color: #FF6B6B; }
+  .avail-status-num.checkin { color: #51CF66; }
+  .avail-status-num.checkout { color: #74C0FC; }
+  .avail-status-label { font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 2px; display: block; }
+  .avail-status-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.15); }
+
+  /* 7-DAY GRID */
+  .week-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .week-nav-btn { background: var(--forest); color: white; border: none; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .week-nav-label { font-size: 13px; font-weight: 700; color: var(--forest); }
+  .grid-scroll-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .avail-table { border-collapse: collapse; width: 100%; min-width: 640px; table-layout: fixed; }
+  .at-corner { background: var(--forest); color: white; font-size: 13px; font-weight: 800; padding: 10px 12px; width: 130px; text-align: center; letter-spacing: 0.3px; }
+  .at-date-hdr { background: var(--forest); color: white; text-align: center; padding: 8px 4px; font-size: 10px; font-weight: 600; border-left: 1px solid rgba(255,255,255,0.12); width: 80px; line-height: 1.5; }
+  .at-date-hdr.today { background: var(--gold); color: var(--forest); }
+  .at-day-num { font-size: 18px; font-weight: 800; display: block; margin: 3px 0; }
+  .at-prop { background: #F7F3ED; color: var(--forest); font-size: 12px; font-weight: 700; padding: 8px 12px; border: 1px solid var(--border); width: 130px; vertical-align: middle; height: 40px; line-height: 1.3; white-space: nowrap; }
+  .at-prop.rock { background: #F7F3ED; color: var(--forest); text-align: left; font-weight: 700; font-size: 12px; vertical-align: middle; padding: 8px 12px; height: 80px; }
+  .at-cell { text-align: center; padding: 8px 4px; font-size: 11px; font-weight: 700; border: 1px solid var(--border); cursor: default; user-select: none; -webkit-user-select: none; vertical-align: middle; height: 40px; line-height: 1.3; letter-spacing: 0.3px; }
+  .at-cell.avl { background: #C8F5C8; color: #1B5E20; cursor: pointer; }
+  .at-cell.avl:active { background: #A5D6A7; }
+  .at-cell.booked { background: #FFCDD2; color: #B71C1C; }
+  .at-cell.partial { background: #FFF9C4; color: #E65100; cursor: pointer; }
+  .at-cell.past { background: #F5F5F5; color: #BDBDBD; }
+  .at-guest { display: block; font-size: 9px; font-weight: 500; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 68px; margin-left: auto; margin-right: auto; opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">Q</div>
+    <div class="header-title">
+      <h1>Qintara Ops</h1>
+      <p>Property Management</p>
+    </div>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab" onclick="showPage('dashboard')"><span class="nav-tab-icon">🌅</span>Dashboard</div>
+  <div class="nav-tab active" onclick="showPage('availability')"><span class="nav-tab-icon">🏡</span>Availability</div>
+  <div class="nav-tab" onclick="showPage('bookings')"><span class="nav-tab-icon">📋</span>Bookings</div>
+  <div class="nav-tab" onclick="showPage('cash')"><span class="nav-tab-icon">💰</span>Cash</div>
+  <div class="nav-tab" onclick="showPage('newbooking')"><span class="nav-tab-icon">➕</span>New</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page" id="page-dashboard">
+
+  <!-- Greeting -->
+  <div class="morning-greeting">
+    <h2 id="greetingText">Good Morning, Vikas 👋</h2>
+    <p id="greetingDate"></p>
+  </div>
+
+  <!-- Period Tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:14px">
+    <button class="period-btn active" id="pb-today" onclick="setPeriod('today',this)">Today</button>
+    <button class="period-btn" id="pb-month" onclick="setPeriod('month',this)">This Month</button>
+    <button class="period-btn" id="pb-custom" onclick="setPeriod('custom',this)">Custom</button>
+  </div>
+  <div id="custom-range" style="display:none;background:white;border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(--border)">
+    <div class="date-row">
+      <div><label class="form-label">From</label><input type="date" id="dash-from" class="form-input" onchange="renderDashboard()"></div>
+      <div><label class="form-label">To</label><input type="date" id="dash-to" class="form-input" onchange="renderDashboard()"></div>
+    </div>
+  </div>
+
+  <!-- TODAY STRIP -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+    <div class="dash-mini-box" style="border-top:3px solid #3B82F6">
+      <div class="dash-mini-num" id="stat-checkins">0</div>
+      <div class="dash-mini-label">Check-ins</div>
+    </div>
+    <div class="dash-mini-box" style="border-top:3px solid #8B5CF6">
+      <div class="dash-mini-num" id="stat-checkouts">0</div>
+      <div class="dash-mini-label">Check-outs</div>
+    </div>
+    <div class="dash-mini-box" style="border-top:3px solid #10B981">
+      <div class="dash-mini-num" id="stat-available">0</div>
+      <div class="dash-mini-label">Free Today</div>
+    </div>
+    <div class="dash-mini-box" style="border-top:3px solid #F59E0B">
+      <div class="dash-mini-num" id="stat-staying">0</div>
+      <div class="dash-mini-label">Staying</div>
+    </div>
+  </div>
+
+  <!-- MAIN KPI CARDS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="dash-kpi-box">
+      <div class="dash-kpi-label">💰 Total Revenue</div>
+      <div class="dash-kpi-num" id="kpi-revenue">₹0</div>
+      <div class="dash-kpi-sub" id="kpi-bookings-count">0 bookings</div>
+    </div>
+    <div class="dash-kpi-box">
+      <div class="dash-kpi-label">⚠️ Balance Pending</div>
+      <div class="dash-kpi-num" style="color:var(--danger)" id="kpi-pending">₹0</div>
+      <div class="dash-kpi-sub" id="kpi-pending-count">0 bookings</div>
+    </div>
+    <div class="dash-kpi-box">
+      <div class="dash-kpi-label">✅ Advance Collected</div>
+      <div class="dash-kpi-num" style="color:var(--success)" id="kpi-advance">₹0</div>
+      <div class="dash-kpi-sub" id="kpi-advance-pct"></div>
+    </div>
+    <div class="dash-kpi-box" style="background:var(--forest);color:white">
+      <div class="dash-kpi-label" style="color:rgba(255,255,255,0.7)">🎯 Your Incentive (1%)</div>
+      <div class="dash-kpi-num" style="color:var(--gold)" id="kpi-incentive">₹0</div>
+      <div class="dash-kpi-sub" style="color:rgba(255,255,255,0.5)" id="kpi-incentive-sub">on bookings by Vikas</div>
+    </div>
+  </div>
+
+  <!-- AIRBNB ALERTS -->
+  <div id="airbnb-alerts"></div>
+
+  <!-- TODAY CHECKINS/OUTS -->
+  <div class="card"><div class="card-title">📅 Today's Check-ins</div><div id="today-checkins"><div class="empty-state"><p>No check-ins today</p></div></div></div>
+  <div class="card"><div class="card-title">🚪 Today's Check-outs</div><div id="today-checkouts"><div class="empty-state"><p>No check-outs today</p></div></div></div>
+
+  <!-- PENDING BALANCES -->
+  <div class="card">
+    <div class="card-title">⚠️ Pending Balances</div>
+    <div id="pending-balances-list"><div class="empty-state"><p>All balances cleared ✅</p></div></div>
+  </div>
+
+  <!-- PROPERTY BREAKDOWN -->
+  <div class="card">
+    <div class="card-title">🏡 Property Performance</div>
+    <div id="property-breakdown"></div>
+  </div>
+
+  <!-- TEAM PERFORMANCE -->
+  <div class="card">
+    <div class="card-title">👥 Team Performance</div>
+    <div id="team-performance"></div>
+  </div>
+
+  <!-- CASH IN HAND -->
+  <div class="card">
+    <div class="card-title">💵 Cash in Hand — All Properties</div>
+    <div id="cash-in-hand"></div>
+  </div>
+
+</div>
+
+<!-- AVAILABILITY -->
+<div class="page active" id="page-availability">
+  <div class="avail-status-bar">
+    <div class="avail-status-item"><span class="avail-status-num" id="avs-free">0</span><span class="avail-status-label">Free Today</span></div>
+    <div class="avail-status-divider"></div>
+    <div class="avail-status-item"><span class="avail-status-num occupied" id="avs-occupied">0</span><span class="avail-status-label">Occupied</span></div>
+    <div class="avail-status-divider"></div>
+    <div class="avail-status-item"><span class="avail-status-num checkin" id="avs-checkin">0</span><span class="avail-status-label">Check-in Today</span></div>
+    <div class="avail-status-divider"></div>
+    <div class="avail-status-item"><span class="avail-status-num checkout" id="avs-checkout">0</span><span class="avail-status-label">Check-out Today</span></div>
+  </div>
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="shiftWeek(-7)">&#8592; Prev</button>
+    <div class="week-nav-label" id="week-label">This Week</div>
+    <button class="week-nav-btn" onclick="shiftWeek(7)">Next &#8594;</button>
+  </div>
+  <div class="grid-scroll-wrap">
+    <div id="avail-grid"></div>
+  </div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;margin-bottom:16px">
+    Tap any <span style="color:var(--success);font-weight:700">AVL</span> cell to book instantly
+  </div>
+</div>
+
+<!-- BOOKINGS -->
+<div class="page" id="page-bookings">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:var(--forest)">All Bookings</div>
+    <button class="excel-btn" onclick="exportToExcel()">📊 Export Excel</button>
+  </div>
+  <div class="filter-chips">
+    <div class="chip active" onclick="filterBookings('all',this)">All</div>
+    <div class="chip" onclick="filterBookings('upcoming',this)">Upcoming</div>
+    <div class="chip" onclick="filterBookings('checkedin',this)">Checked In</div>
+    <div class="chip" onclick="filterBookings('balance',this)">Bal. Due</div>
+    <div class="chip" onclick="filterBookings('completed',this)">Completed</div>
+  </div>
+  <div id="bookings-list"></div>
+</div>
+
+<!-- CASH -->
+<div class="page" id="page-cash">
+  <div class="summary-box">
+    <div class="summary-row"><span>Total Collected</span><span id="cs-collected">₹0</span></div>
+    <div class="summary-row"><span>Property Expenses</span><span id="cs-expenses">₹0</span></div>
+    <div class="summary-row"><span>Security Deposits</span><span id="cs-security">₹0</span></div>
+    <div class="summary-row"><span>Net to Office</span><span id="cs-net">₹0</span></div>
+  </div>
+  <div class="section-header">
+    <div class="section-title">Cash Entries</div>
+    <button class="btn btn-gold btn-sm" onclick="openCashModal()">+ Add Entry</button>
+  </div>
+  <div class="whatsapp-format">
+    <h4>📱 Caretaker WhatsApp Format</h4>
+    <code>BALANCE | Guest Name | Property | Amount<br>SECURITY | Guest Name | Property | Amount<br>EXPENSE | Description | Property | Amount<br>FOOD | Guest Name | Property | Amount<br>EXTRA | Description | Property | Amount</code>
+  </div>
+  <div id="cash-entries-list"></div>
+</div>
+
+<!-- NEW BOOKING -->
+<div class="page" id="page-newbooking">
+  <div class="card">
+    <div class="card-title">📋 New Booking</div>
+    <div class="form-group"><label class="form-label">Guest Name *</label><input type="text" id="nb-guest" class="form-input" placeholder="e.g. Sharma Ji"></div>
+    <div class="form-group"><label class="form-label">Phone Number *</label><input type="tel" id="nb-phone" class="form-input" placeholder="e.g. 9599367189"></div>
+    <div class="form-group">
+      <label class="form-label">Property *</label>
+      <select id="nb-property" class="form-input" onchange="onPropertyChange()">
+        <option value="">— Select Property —</option>
+        <option value="Sunhera">Sunhera (Villa)</option>
+        <option value="Hogwarts">Hogwarts (Villa)</option>
+        <option value="Triveni Jewels">Triveni Jewels (Villa)</option>
+        <option value="Amalia House">Amalia House (Home Stay)</option>
+        <option value="Leela House 1">Leela House 1 (Villa)</option>
+        <option value="Leela House 2">Leela House 2 (Villa)</option>
+        <option value="Rock Project">The Rock Project (Resort)</option>
+      </select>
+    </div>
+    <div class="form-group" id="nb-unit-section" style="display:none">
+      <label class="form-label">Select Units *</label>
+      <div class="unit-tiles" id="nb-unit-tiles"></div>
+      <div class="unit-summary" id="nb-unit-summary">Tap to select units</div>
+    </div>
+    <div class="date-row form-group">
+      <div><label class="form-label">Check-in *</label><input type="date" id="nb-checkin" class="form-input" onchange="onDatesChange()"></div>
+      <div><label class="form-label">Check-out *</label><input type="date" id="nb-checkout" class="form-input" onchange="onDatesChange()"></div>
+    </div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Total Amount ₹ *</label><input type="number" id="nb-total" class="form-input" placeholder="20000" oninput="calcBal()"></div>
+      <div><label class="form-label">Advance Paid ₹</label><input type="number" id="nb-advance" class="form-input" placeholder="10000" oninput="calcBal()"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Balance ₹ (auto)</label><input type="number" id="nb-balance" class="form-input" readonly style="background:#f5f5f5"></div>
+    <div class="form-group">
+      <label class="form-label">Booked By</label>
+      <select id="nb-bookedby" class="form-input">
+        <option value="Vikas">Vikas</option>
+        <option value="Harsh">Harsh</option>
+        <option value="Sahvash">Sahvash</option>
+        <option value="Vyas">Vyas</option>
+        <option value="Mansi">Mansi</option>
+        <option value="Kashish">Kashish</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Source</label>
+      <select id="nb-source" class="form-input">
+        <option value="Direct">Direct</option>
+        <option value="Airbnb">Airbnb</option>
+        <option value="WhatsApp">WhatsApp</option>
+        <option value="Referral">Referral</option>
+        <option value="Walk-in">Walk-in</option>
+        <option value="MMT">MakeMyTrip</option>
+      </select>
+    </div>
+    <div class="amount-row form-group">
+      <div>
+        <label class="form-label">Advance Payment Mode</label>
+        <select id="nb-paymode" class="form-input">
+          <option value="UPI">UPI</option>
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">No. of People (Optional)</label>
+        <input type="number" id="nb-people" class="form-input" placeholder="e.g. 4">
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea id="nb-notes" class="form-input" rows="2" placeholder="Special requests..."></textarea></div>
+    <div class="conflict-warn" id="nb-conflict"></div>
+    <button class="btn btn-primary" id="nb-submit-btn" onclick="submitNewBooking()">✅ Confirm Booking</button>
+  </div>
+</div>
+
+<!-- CASH MODAL -->
+<div class="modal-overlay" id="cash-modal">
+  <div class="modal">
+    <div class="modal-title">Add Cash Entry</div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select id="cm-type" class="form-input">
+        <option value="balance">Balance Collection</option>
+        <option value="security">Security Deposit</option>
+        <option value="food">Food Bill</option>
+        <option value="extra">Extra Charges</option>
+        <option value="expense">Property Expense</option>
+        <option value="collection">Field Manager Collection</option>
+        <option value="refund">Security Refund</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Property</label>
+      <select id="cm-property" class="form-input">
+        <option value="Sunhera">Sunhera</option>
+        <option value="Hogwarts">Hogwarts</option>
+        <option value="Triveni Jewels">Triveni Jewels</option>
+        <option value="Amalia House">Amalia House</option>
+        <option value="Leela House 1">Leela House 1</option>
+        <option value="Leela House 2">Leela House 2</option>
+        <option value="Rock Project">The Rock Project</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><input type="text" id="cm-desc" class="form-input" placeholder="Guest name / description"></div>
+    <div class="form-group"><label class="form-label">Amount ₹</label><input type="number" id="cm-amount" class="form-input" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Logged By</label><input type="text" id="cm-by" class="form-input" placeholder="Caretaker / Field Manager name"></div>
+    <button class="btn btn-primary" onclick="submitCash()" style="margin-bottom:10px">Add Entry</button>
+    <button class="btn" style="background:var(--sand)" onclick="closeCashModal()">Cancel</button>
+  </div>
+</div>
+
+
+
+<!-- CHECK-IN MODAL -->
+<div class="modal-overlay" id="checkin-modal">
+  <div class="modal">
+    <div class="modal-title">🏠 Check In & Collect Balance</div>
+    <input type="hidden" id="ci-id">
+    <div id="ci-guest-info" style="background:var(--cream);border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;line-height:1.8"></div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">💰 Balance Collection</div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Balance Amount ₹</label><input type="number" id="ci-balance" class="form-input"></div>
+      <div><label class="form-label">Payment Mode</label>
+        <select id="ci-bal-paymode" class="form-input">
+          <option value="UPI">UPI</option>
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🔒 Security Deposit (Optional)</div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Security Amount ₹</label><input type="number" id="ci-security" class="form-input" placeholder="0 if not collected"></div>
+      <div><label class="form-label">Payment Mode</label>
+        <select id="ci-sec-paymode" class="form-input">
+          <option value="UPI">UPI</option>
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🪪 ID Verification</div>
+    <div class="form-group">
+      <label class="form-label">ID Collected</label>
+      <select id="ci-id-status" class="form-input">
+        <option value="yes">✅ Yes — ID Collected</option>
+        <option value="no">❌ No — Not Collected</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ID Type</label>
+      <select id="ci-id-type" class="form-input">
+        <option value="Aadhaar">Aadhaar Card</option>
+        <option value="PAN">PAN Card</option>
+        <option value="Passport">Passport</option>
+        <option value="DL">Driving Licence</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div id="ci-summary" style="display:none;background:#E8F5E9;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.8"></div>
+
+    <button class="btn btn-primary" onclick="saveCheckin()" style="margin-bottom:10px">✅ Confirm Check In</button>
+    <button class="btn" style="background:var(--sand)" onclick="document.getElementById('checkin-modal').classList.remove('open')">Cancel</button>
+  </div>
+</div>
+
+<!-- CHECK-OUT MODAL -->
+<div class="modal-overlay" id="checkout-modal">
+  <div class="modal">
+    <div class="modal-title">🚪 Check Out & Close</div>
+    <input type="hidden" id="co-id">
+    <div id="co-guest-info" style="background:var(--cream);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.8"></div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🍽️ Food & Cook</div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Food Bill ₹</label><input type="number" id="co-food" class="form-input" placeholder="0" oninput="updateCoSummary()"></div>
+      <div><label class="form-label">Mode</label>
+        <select id="co-food-mode" class="form-input">
+          <option value="Cash">Cash</option><option value="UPI">UPI</option>
+        </select>
+      </div>
+    </div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Cook Charge ₹</label><input type="number" id="co-cook" class="form-input" placeholder="0" oninput="updateCoSummary()"></div>
+      <div><label class="form-label">Mode</label>
+        <select id="co-cook-mode" class="form-input">
+          <option value="Cash">Cash</option><option value="UPI">UPI</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🛏️ Extra Items</div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Extra Bedding ₹</label><input type="number" id="co-bedding" class="form-input" placeholder="0" oninput="updateCoSummary()"></div>
+      <div><label class="form-label">Mode</label>
+        <select id="co-bedding-mode" class="form-input">
+          <option value="Cash">Cash</option><option value="UPI">UPI</option>
+        </select>
+      </div>
+    </div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Damage ₹</label><input type="number" id="co-damage" class="form-input" placeholder="0" oninput="updateCoSummary()"></div>
+      <div><label class="form-label">Other ₹</label><input type="number" id="co-other" class="form-input" placeholder="0" oninput="updateCoSummary()"></div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">🔒 Security Settlement</div>
+    <div class="form-group">
+      <label class="form-label">Security Action</label>
+      <select id="co-sec-action" class="form-input" onchange="updateCoSummary()">
+        <option value="adjusted">Adjusted against extras</option>
+        <option value="refund_full">Refunded fully to guest</option>
+        <option value="refund_partial">Refunded partially</option>
+        <option value="kept">Kept (damage/loss)</option>
+        <option value="na">Not applicable (no security taken)</option>
+      </select>
+    </div>
+    <div class="form-group" id="co-refund-row" style="display:none">
+      <label class="form-label">Refund Amount ₹</label>
+      <input type="number" id="co-refund-amt" class="form-input" placeholder="0" oninput="updateCoSummary()">
+    </div>
+
+    <!-- Live Summary -->
+    <div id="co-summary" style="background:var(--forest);color:white;border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;line-height:2"></div>
+
+    <button class="btn btn-primary" onclick="saveCheckout()" style="margin-bottom:10px">🔒 Close Booking</button>
+    <button class="btn" style="background:var(--sand)" onclick="document.getElementById('checkout-modal').classList.remove('open')">Cancel</button>
+  </div>
+</div>
+
+<!-- CANCEL BOOKING MODAL -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal">
+    <div class="modal-title">❌ Cancel Booking</div>
+    <input type="hidden" id="canc-id">
+    <div id="canc-info" style="background:var(--cream);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px"></div>
+    <div class="form-group">
+      <label class="form-label">Reason for Cancellation</label>
+      <select id="canc-reason" class="form-input">
+        <option value="Guest cancelled">Guest Cancelled</option>
+        <option value="Property issue">Property Issue</option>
+        <option value="Double booking">Double Booking</option>
+        <option value="Payment not received">Payment Not Received</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Refund Amount ₹ (if any)</label>
+      <input type="number" id="canc-refund" class="form-input" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input type="text" id="canc-notes" class="form-input" placeholder="Any additional info...">
+    </div>
+    <button class="btn btn-primary" onclick="saveCancel()" style="margin-bottom:10px;background:var(--danger)">❌ Confirm Cancellation</button>
+    <button class="btn" style="background:var(--sand)" onclick="document.getElementById('cancel-modal').classList.remove('open')">Go Back</button>
+  </div>
+</div>
+
+<!-- EDIT BOOKING MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ Edit Booking</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-group"><label class="form-label">Guest Name *</label><input type="text" id="edit-guest" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Phone Number *</label><input type="tel" id="edit-phone" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Property</label><input type="text" id="edit-property" class="form-input" readonly style="background:#f5f5f5"></div>
+    <div class="date-row form-group">
+      <div><label class="form-label">Check-in *</label><input type="date" id="edit-checkin" class="form-input"></div>
+      <div><label class="form-label">Check-out *</label><input type="date" id="edit-checkout" class="form-input"></div>
+    </div>
+    <div class="amount-row form-group">
+      <div><label class="form-label">Total ₹</label><input type="number" id="edit-total" class="form-input" oninput="editCalcBal()"></div>
+      <div><label class="form-label">Advance ₹</label><input type="number" id="edit-advance" class="form-input" oninput="editCalcBal()"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Balance ₹</label><input type="number" id="edit-balance" class="form-input" readonly style="background:#f5f5f5"></div>
+    <div class="form-group">
+      <label class="form-label">Source</label>
+      <select id="edit-source" class="form-input">
+        <option value="Direct">Direct</option>
+        <option value="Airbnb">Airbnb</option>
+        <option value="WhatsApp">WhatsApp</option>
+        <option value="Referral">Referral</option>
+        <option value="Walk-in">Walk-in</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea id="edit-notes" class="form-input" rows="2"></textarea></div>
+    <button class="btn btn-primary" onclick="saveEditBooking()" style="margin-bottom:10px">💾 Save Changes</button>
+    <button class="btn" style="background:var(--sand)" onclick="closeEditModal()">Cancel</button>
+  </div>
+</div>
+
+
+<!-- BALANCE COLLECTION MODAL -->
+<div class="modal-overlay" id="balance-modal">
+  <div class="modal">
+    <div class="modal-title">💰 Collect Balance</div>
+    <input type="hidden" id="bm-id">
+    <div id="bm-info" style="background:var(--cream);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.8"></div>
+    <div class="amount-row form-group">
+      <div>
+        <label class="form-label">Balance Amount ₹</label>
+        <input type="number" id="bm-amount" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Payment Mode</label>
+        <select id="bm-paymode" class="form-input">
+          <option value="UPI">UPI</option>
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Collection Date</label>
+      <input type="date" id="bm-date" class="form-input">
+    </div>
+    <button class="btn btn-primary" onclick="saveBalanceCollection()" style="margin-bottom:10px">✅ Mark Balance Collected</button>
+    <button class="btn" style="background:var(--sand)" onclick="document.getElementById('balance-modal').classList.remove('open')">Cancel</button>
+  </div>
+</div>
+
+
+<!-- Hidden file input for payment proof upload -->
+<input type="file" id="proof-file-input" accept="image/*" style="display:none" onchange="uploadProof(this)">
+<input type="hidden" id="proof-booking-id">
+<input type="hidden" id="proof-type">
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+const SUPABASE_URL = 'https://hsworpsgxdqathjqvqfn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhzd29ycHNneGRxYXRoanF2cWZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Mjg1NDEsImV4cCI6MjA5ODMwNDU0MX0.bupE7s9QpeJxhk6hhaI4Tx3f3CH-pTHa8Yu2NnFVLJ0';
+
+async function sbFetch(path, options={}) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    'Cache-Control': 'no-cache'
+  };
+  if(options.headers) Object.assign(headers, options.headers);
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body || undefined,
+    mode: 'cors'
+  });
+  if(!res.ok) { const e = await res.text(); throw new Error(res.status + ': ' + e); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ============================================================
+// DATA
+// ============================================================
+const ROCK_UNITS = ['Mud House 1','Mud House 2','Mud House 3','Mud House 4','Bamboo Cottage 1','Bamboo Cottage 2','Bamboo Cottage 3','Bamboo Cottage 4','Bamboo Cottage 5','Bamboo Cottage 6'];
+const PROPERTIES = [
+  { id:'Sunhera',       name:'Sunhera',        type:'Villa',     hasUnits:false },
+  { id:'Hogwarts',      name:'Hogwarts',        type:'Villa',     hasUnits:false },
+  { id:'Triveni Jewels',name:'Triveni Jewels',  type:'Villa',     hasUnits:false },
+  { id:'Amalia House',  name:'Amalia House',    type:'Home Stay', hasUnits:false },
+  { id:'Leela House 1', name:'Leela House 1',   type:'Villa',     hasUnits:false },
+  { id:'Leela House 2', name:'Leela House 2',   type:'Villa',     hasUnits:false },
+  { id:'Rock Project',  name:'The Rock Project',type:'Resort',    hasUnits:true  },
+];
+
+let bookings = [];
+let cashEntries = [];
+var pickedUnits = [];
+
+// ============================================================
+// DATA LAYER — Supabase with local fallback
+// ============================================================
+async function loadData() {
+  try {
+    const [bks, cash] = await Promise.all([
+      sbFetch('bookings?order=created_at.desc&select=*'),
+      sbFetch('cash_entries?order=created_at.desc&select=*')
+    ]);
+    bookings = (bks||[]).map(b => ({
+      ...b,
+      units: b.units ? (Array.isArray(b.units) ? b.units : b.units.split(',')) : null,
+      bookedBy: b.booked_by || b.bookedby || b.bookedBy,
+      paymode: b.paymode || 'UPI',
+      people: b.people || '',
+      advPayDate: b.adv_pay_date || b.created_at || '',
+      balReceived: b.bal_received || false,
+      balPaymode: b.bal_paymode || '',
+      balPayDate: b.bal_pay_date || '',
+      security: Number(b.security)||0,
+      secPaymode: b.sec_paymode || '',
+      secReceived: b.sec_received || false,
+      extraFood: Number(b.extra_food)||0,
+      extraBedding: Number(b.extra_bedding)||0,
+      extraDamage: Number(b.extra_damage)||0,
+      extraOther: Number(b.extra_other)||0,
+      closedAt: b.closed_at || '',
+      airbnb_blocked: b.airbnb_blocked || 'pending',
+      proof_advance: b.proof_advance || '',
+      proof_balance: b.proof_balance || ''
+    }));
+    cashEntries = (cash||[]).map(e => ({
+      ...e,
+      desc: e.description || e.desc,
+      by: e.logged_by || e.by
+    }));
+  } catch(e) {
+    console.error('Supabase load error:', e);
+    throw e; // Re-throw so init can show the error
+  }
+}
+
+async function insertBooking(booking) {
+  const row = {
+    id: booking.id,
+    guest: booking.guest,
+    phone: booking.phone,
+    property: booking.property,
+    units: booking.units ? booking.units.join(',') : null,
+    checkin: booking.checkin,
+    checkout: booking.checkout,
+    total: booking.total,
+    advance: booking.advance,
+    balance: booking.balance,
+    booked_by: booking.bookedBy,
+    source: booking.source,
+    airbnb_blocked: booking.airbnb_blocked || 'pending',
+    proof_advance: '',
+    proof_balance: '',
+    paymode: booking.paymode || 'UPI',
+    people: booking.people || '',
+    notes: booking.notes,
+    status: booking.status,
+    adv_pay_date: booking.advPayDate || booking.createdAt,
+    bal_received: false,
+    bal_paymode: '',
+    bal_pay_date: '',
+    security: 0,
+    sec_paymode: '',
+    sec_received: false,
+    extra_food: 0,
+    extra_bedding: 0,
+    extra_damage: 0,
+    extra_other: 0,
+    closed_at: ''
+  };
+  const result = await sbFetch('bookings', { method:'POST', body: JSON.stringify(row) });
+  const saved = Array.isArray(result) ? result[0] : result;
+  const mapped = { ...booking, ...saved, units: booking.units, bookedBy: booking.bookedBy };
+  bookings.unshift(mapped);
+}
+
+async function updateBooking(id, changes) {
+  await sbFetch('bookings?id=eq.'+id, { method:'PATCH', body: JSON.stringify(changes) });
+  const b = bookings.find(x=>x.id===id);
+  if(b) Object.assign(b, changes);
+}
+
+async function insertCash(entry) {
+  const row = {
+    id: entry.id,
+    type: entry.type,
+    property: entry.property,
+    description: entry.desc,
+    amount: entry.amount,
+    logged_by: entry.by,
+    date: entry.date
+  };
+  const result = await sbFetch('cash_entries', { method:'POST', body: JSON.stringify(row) });
+  const saved = Array.isArray(result) ? result[0] : result;
+  cashEntries.unshift({ ...entry, ...saved });
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(d) {
+  if(!d) return '';
+  try {
+    // Handle ISO string like "2026-07-20T..."
+    var s = String(d).substring(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(s)) return '';
+    var dt = new Date(s + 'T12:00:00');
+    if(isNaN(dt)) return '';
+    return dt.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  } catch(e) { return ''; }
+}
+function fmtMoney(n) { n=Number(n)||0; if(n>=1000) return '₹'+(n/1000).toFixed(n%1000===0?0:1)+'K'; return '₹'+n; }
+function overlap(s1,e1,s2,e2) { return s1 < e2 && e1 > s2; }
+function addDay(ds,n) { const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n); return d.toISOString().split('T')[0]; }
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast'+(isError?' error':'');
+  t.style.display = 'block';
+  clearTimeout(window._tt);
+  window._tt = setTimeout(()=>{ t.style.display='none'; }, 3000);
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const tabs = ['dashboard','availability','bookings','cash','newbooking'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(id)].classList.add('active');
+  if(id==='dashboard')    renderDashboard();
+  if(id==='availability') renderAvailability();
+  if(id==='bookings')     renderBookings('all');
+  if(id==='cash')         renderCash();
+  if(id==='newbooking')   resetBookingForm();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+var dashPeriod = 'today';
+
+function setPeriod(p, el) {
+  dashPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('custom-range').style.display = p==='custom' ? 'block' : 'none';
+  renderDashboard();
+}
+
+function getDashRange() {
+  const td = todayStr();
+  if(dashPeriod==='today') return [td, td];
+  if(dashPeriod==='month') {
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const to   = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
+    return [from, to];
+  }
+  if(dashPeriod==='custom') {
+    const from = document.getElementById('dash-from').value || td;
+    const to   = document.getElementById('dash-to').value || td;
+    return [from, to];
+  }
+  return [td, td];
+}
+
+function renderDashboard() {
+  const now = new Date(), hr = now.getHours();
+  const greet = hr<12?'Good Morning':hr<17?'Good Afternoon':'Good Evening';
+  document.getElementById('greetingText').textContent = greet+', Vikas 👋';
+  document.getElementById('greetingDate').textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  const td = todayStr();
+  const [from, to] = getDashRange();
+
+  // ── TODAY STRIP (always today) ───────────────────────────────────────────
+  const checkins  = bookings.filter(b=>b.checkin===td  && b.status!=='cancelled');
+  const checkouts = bookings.filter(b=>b.checkout===td && b.status!=='cancelled');
+  const staying   = bookings.filter(b=>b.checkin<=td && b.checkout>td && b.status!=='cancelled');
+  const freeProps = PROPERTIES.filter(p=>!bookings.some(b=>b.property===p.id && overlap(b.checkin,b.checkout,td,td) && b.status!=='cancelled'));
+
+  document.getElementById('stat-checkins').textContent  = checkins.length;
+  document.getElementById('stat-checkouts').textContent = checkouts.length;
+  document.getElementById('stat-available').textContent = freeProps.length+'/7';
+  document.getElementById('stat-staying').textContent   = staying.length;
+
+  // ── PERIOD BOOKINGS ──────────────────────────────────────────────────────
+  const periodBks = bookings.filter(b=>
+    b.status!=='cancelled' &&
+    b.checkin >= from && b.checkin <= to
+  );
+
+  const totalRevenue  = periodBks.reduce((s,b)=>s+(Number(b.total)||0), 0);
+  const totalAdvance  = periodBks.reduce((s,b)=>s+(Number(b.advance)||0), 0);
+  const totalPending  = periodBks.reduce((s,b)=>s+(Number(b.balance)||0), 0);
+  const pendingBks    = periodBks.filter(b=>b.balance>0);
+  const advPct        = totalRevenue>0 ? Math.round(totalAdvance/totalRevenue*100) : 0;
+
+  // Vikas incentive — 1% of bookings taken by Vikas
+  const vikasBks     = periodBks.filter(b=>(b.bookedBy||b.booked_by||'').toLowerCase()==='vikas');
+  const vikasRevenue = vikasBks.reduce((s,b)=>s+(Number(b.total)||0), 0);
+  const incentive    = Math.round(vikasRevenue * 0.01);
+
+  document.getElementById('kpi-revenue').textContent       = fmtMoney(totalRevenue);
+  document.getElementById('kpi-bookings-count').textContent= periodBks.length+' bookings';
+  document.getElementById('kpi-pending').textContent       = fmtMoney(totalPending);
+  document.getElementById('kpi-pending-count').textContent = pendingBks.length+' bookings';
+  document.getElementById('kpi-advance').textContent       = fmtMoney(totalAdvance);
+  document.getElementById('kpi-advance-pct').textContent   = advPct+'% of total collected';
+  document.getElementById('kpi-incentive').textContent     = fmtMoney(incentive);
+  document.getElementById('kpi-incentive-sub').textContent = vikasBks.length+' bookings · ₹'+vikasRevenue.toLocaleString('en-IN')+' revenue';
+
+  // ── AIRBNB ALERTS ────────────────────────────────────────────────────────
+  const direct = bookings.filter(b=>b.source!=='Airbnb' && b.checkin>=td && b.status!=='cancelled');
+  document.getElementById('airbnb-alerts').innerHTML = direct.length
+    ? `<div class="airbnb-alert">🏠 <b>${direct.length} direct booking(s)</b> — block on Airbnb!</div>` : '';
+
+  // ── TODAY CHECKINS/OUTS ──────────────────────────────────────────────────
+  const mc = b => {
+    const u = b.units&&b.units.length?' · '+b.units.join(', '):'';
+    return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><b style="font-size:13px">${b.guest}</b><br><span style="font-size:11px;color:var(--muted)">${b.property}${u}</span></div>
+      <div style="text-align:right">
+        <span style="font-size:11px;color:var(--river)">${fmtDate(b.checkin)}→${fmtDate(b.checkout)}</span>
+        ${b.balance>0?"<br><span style=\"font-size:11px;color:var(--danger);font-weight:600\">Bal "+fmtMoney(b.balance)+"</span>":"<br><span style=\"font-size:11px;color:var(--success)\">Paid</span>"}
+      </div>
+    </div>`;
+  };
+  document.getElementById('today-checkins').innerHTML  = checkins.length  ? checkins.map(mc).join('')  : '<div class="empty-state"><p>No check-ins today</p></div>';
+  document.getElementById('today-checkouts').innerHTML = checkouts.length ? checkouts.map(mc).join('') : '<div class="empty-state"><p>No check-outs today</p></div>';
+
+  // ── PENDING BALANCES ─────────────────────────────────────────────────────
+  const allPending = bookings.filter(b=>b.balance>0 && b.status!=='cancelled').sort((a,b)=>a.checkin.localeCompare(b.checkin));
+  document.getElementById('pending-balances-list').innerHTML = allPending.length
+    ? allPending.map(b=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <b style="font-size:13px">${b.guest}</b>
+          <br><span style="font-size:11px;color:var(--muted)">${b.property} · ${fmtDate(b.checkin)}→${fmtDate(b.checkout)}</span>
+          <br><span style="font-size:11px;color:var(--muted)">By ${b.bookedBy||b.booked_by||''}</span>
+        </div>
+        <span style="color:var(--danger);font-weight:800;font-size:16px">${fmtMoney(b.balance)}</span>
+      </div>`).join('')
+    : '<div class="empty-state"><p>All balances cleared ✅</p></div>';
+
+  // ── PROPERTY PERFORMANCE ─────────────────────────────────────────────────
+  const maxPropRev = Math.max(...PROPERTIES.map(p=>
+    periodBks.filter(b=>b.property===p.id).reduce((s,b)=>s+(Number(b.total)||0),0)
+  ), 1);
+
+  document.getElementById('property-breakdown').innerHTML = PROPERTIES.map(p=>{
+    const pBks     = periodBks.filter(b=>b.property===p.id);
+    const pRev     = pBks.reduce((s,b)=>s+(Number(b.total)||0),0);
+    const pPending = pBks.reduce((s,b)=>s+(Number(b.balance)||0),0);
+    const pStaying = bookings.filter(b=>b.property===p.id && b.checkin<=td && b.checkout>td && b.status!=='cancelled').length;
+    const barW     = Math.round(pRev/maxPropRev*100);
+    return `<div class="prop-row">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--forest)">${p.name}</div>
+        <div class="prop-bar-wrap"><div class="prop-bar" style="width:${barW}%"></div></div>
+        <div style="font-size:11px;color:var(--muted)">${pBks.length} bookings${pStaying>0?" - "+pStaying+" staying":""}</div>
+      </div>
+      <div style="text-align:right;margin-left:12px">
+        <div style="font-size:15px;font-weight:800;color:var(--forest)">${fmtMoney(pRev)}</div>
+        ${pPending>0?"<div style=\"font-size:11px;color:var(--danger);font-weight:600\">"+fmtMoney(pPending)+" pending</div>":"<div style=\"font-size:11px;color:var(--success)\">Clear</div>"}
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── TEAM PERFORMANCE ─────────────────────────────────────────────────────
+  const team = ['Vikas','Harsh','Sahvash','Vyas','Mansi','Kashish'];
+  const maxTeamRev = Math.max(...team.map(name=>
+    periodBks.filter(b=>(b.bookedBy||b.booked_by||'')=== name).reduce((s,b)=>s+(Number(b.total)||0),0)
+  ), 1);
+
+  document.getElementById('team-performance').innerHTML = team.map(name=>{
+    const tBks = periodBks.filter(b=>(b.bookedBy||b.booked_by||'')===name);
+    const tRev = tBks.reduce((s,b)=>s+(Number(b.total)||0),0);
+    const tInc = name==='Vikas' ? Math.round(tRev*0.01) : 0;
+    if(tBks.length===0) return '';
+    const barW = Math.round(tRev/maxTeamRev*100);
+    return `<div class="team-row">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--forest)">${name} ${name==='Vikas'?'👑':''}</div>
+        <div class="prop-bar-wrap"><div class="prop-bar" style="width:${barW}%;background:${name==='Vikas'?'var(--gold)':'var(--moss)'}"></div></div>
+        <div style="font-size:11px;color:var(--muted)">${tBks.length} bookings</div>
+      </div>
+      <div style="text-align:right;margin-left:12px">
+        <div style="font-size:15px;font-weight:800;color:var(--forest)">${fmtMoney(tRev)}</div>
+        ${tInc>0?"<div style=\"font-size:11px;color:var(--gold);font-weight:700\">Rs"+tInc.toLocaleString("en-IN")+" incentive</div>":""}
+      </div>
+    </div>`;
+  }).filter(Boolean).join('') || '<div class="empty-state"><p>No bookings in this period</p></div>';
+
+  // ── CASH IN HAND ─────────────────────────────────────────────────────────
+  let totalCashIn = 0, totalCashOut = 0;
+  const cashInTypes  = ['balance','security','food','extra','collection'];
+  const cashOutTypes = ['expense','refund'];
+
+  const propCashHTML = PROPERTIES.map(p=>{
+    const pCashIn  = cashEntries.filter(e=>e.property===p.id && cashInTypes.includes(e.type)).reduce((s,e)=>s+(Number(e.amount)||0),0);
+    const pCashOut = cashEntries.filter(e=>e.property===p.id && cashOutTypes.includes(e.type)).reduce((s,e)=>s+(Number(e.amount)||0),0);
+    const pNet     = pCashIn - pCashOut;
+    if(pCashIn===0 && pCashOut===0) return '';
+    totalCashIn  += pCashIn;
+    totalCashOut += pCashOut;
+    return `<div class="cash-prop-row">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--forest)">${p.name}</div>
+        <div style="font-size:11px;color:var(--muted)">IN ${fmtMoney(pCashIn)} · OUT ${fmtMoney(pCashOut)}</div>
+      </div>
+      <div style="font-size:16px;font-weight:800;color:${pNet>0?'var(--success)':'var(--danger)'}">${fmtMoney(pNet)}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+
+  const netCash = totalCashIn - totalCashOut;
+  document.getElementById('cash-in-hand').innerHTML = `
+    <div style="background:var(--forest);border-radius:10px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px">TOTAL CASH IN HAND</div>
+        <div style="font-size:26px;font-weight:800;color:var(--gold)">${fmtMoney(netCash)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5)">IN ${fmtMoney(totalCashIn)} · OUT ${fmtMoney(totalCashOut)}</div>
+      </div>
+      <div style="font-size:32px">💵</div>
+    </div>
+    ${propCashHTML || '<div class="empty-state"><p>No cash entries yet</p></div>'}
+  `;
+}
+
+// ============================================================
+// AVAILABILITY — 7-DAY GRID
+// ============================================================
+var gridStartOffset = 0;
+
+function shiftWeek(days) {
+  gridStartOffset += days;
+  if(gridStartOffset < 0) gridStartOffset = 0;
+  renderAvailability();
+}
+
+function renderAvailability() {
+  const td = todayStr();
+  const base = new Date(td+'T12:00:00');
+  const days = [];
+  for(let i=0;i<7;i++){const d=new Date(base);d.setDate(d.getDate()+gridStartOffset+i);days.push(d.toISOString().split('T')[0]);}
+
+  document.getElementById('week-label').textContent =
+    gridStartOffset===0?'This Week':gridStartOffset===7?'Next Week':fmtDate(days[0])+' - '+fmtDate(days[6]);
+
+  // Status bar
+  let freeNow=0,occNow=0,cin=0,cout=0;
+  PROPERTIES.forEach(p=>{const occ=bookings.some(b=>b.property===p.id&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,td,td));occ?occNow++:freeNow++;});
+  cin  = bookings.filter(b=>b.checkin===td  &&b.status!=='cancelled').length;
+  cout = bookings.filter(b=>b.checkout===td &&b.status!=='cancelled').length;
+  document.getElementById('avs-free').textContent     = freeNow;
+  document.getElementById('avs-occupied').textContent = occNow;
+  document.getElementById('avs-checkin').textContent  = cin;
+  document.getElementById('avs-checkout').textContent = cout;
+
+  const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  let html = `<table class="avail-table"><thead><tr><th class="at-corner">Property</th>`;
+  days.forEach(d=>{const dt=new Date(d+'T12:00:00'),isT=d===td;html+=`<th class="at-date-hdr${isT?' today':''}">${DN[dt.getDay()]}<br><span class="at-day-num">${dt.getDate()}</span><br>${MN[dt.getMonth()]}</th>`;});
+  html+=`</tr></thead><tbody>`;
+
+  PROPERTIES.forEach(prop=>{
+    if(prop.hasUnits){
+      const tMH=4, tBC=6;
+      // Row 1: Mud Houses — with rowspan=2 on property cell
+      html+=`<tr><td class="at-prop rock" rowspan="2">The Rock Project</td>`;
+      days.forEach(d=>{
+        const ip=d<td;
+        const bb=bookings.filter(b=>b.property===prop.id&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,d,addDay(d,1))&&b.units);
+        const bMH=bb.reduce((a,b)=>a+(b.units||[]).filter(u=>u.startsWith('Mud')).length,0);
+        const fMH=tMH-bMH;
+        let cls,lbl;
+        if(ip)        {cls='past';   lbl='—';}
+        else if(fMH===0)  {cls='booked'; lbl='MH FULL';}
+        else if(fMH<tMH)  {cls='partial';lbl=fMH+' MH AVL';}
+        else          {cls='avl';   lbl=tMH+' MH AVL';}
+        var mhAttr = (!ip&&fMH>0) ? ' onclick="qb(this)" data-prop="Rock Project" data-date="' + d + '"' : '';
+        html += '<td class="at-cell ' + cls + '"' + mhAttr + '>' + lbl + '</td>';
+      });
+      html+=`</tr><tr>`;
+      // Row 2: Bamboo Cottages
+      days.forEach(d=>{
+        const ip=d<td;
+        const bb=bookings.filter(b=>b.property===prop.id&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,d,addDay(d,1))&&b.units);
+        const bBC=bb.reduce((a,b)=>a+(b.units||[]).filter(u=>u.startsWith('Bamboo')).length,0);
+        const fBC=tBC-bBC;
+        let cls,lbl;
+        if(ip)        {cls='past';   lbl='—';}
+        else if(fBC===0)  {cls='booked'; lbl='BC FULL';}
+        else if(fBC<tBC)  {cls='partial';lbl=fBC+' BC AVL';}
+        else          {cls='avl';   lbl=tBC+' BC AVL';}
+        var bcAttr = (!ip&&fBC>0) ? ' onclick="qb(this)" data-prop="Rock Project" data-date="' + d + '"' : '';
+        html += '<td class="at-cell ' + cls + '"' + bcAttr + '>' + lbl + '</td>';
+      });
+      html+=`</tr>`;
+    } else {
+      html+=`<tr><td class="at-prop">${prop.name}</td>`;
+      days.forEach(d=>{
+        const ip=d<td;
+        const bk=bookings.find(b=>b.property===prop.id&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,d,addDay(d,1)));
+        let cls,lbl,g='';
+        if(ip)    {cls='past';  lbl='—';}
+        else if(bk){cls='booked';lbl='BOOKED';g=`<span class="at-guest">${bk.guest}</span>`;}
+        else      {cls='avl';  lbl='AVL';}
+        var propAttr = (!ip&&!bk) ? ' onclick="qb(this)" data-prop="' + prop.id + '" data-date="' + d + '"' : '';
+        html += '<td class="at-cell ' + cls + '"' + propAttr + '>' + lbl + g + '</td>';
+      });
+      html+=`</tr>`;
+    }
+  });
+
+  html+=`</tbody></table>`;
+  document.getElementById('avail-grid').innerHTML=html;
+}
+
+function qb(el) {
+  var prop = el.getAttribute('data-prop');
+  var date = el.getAttribute('data-date');
+  quickBook(prop, date);
+}
+
+function quickBook(propertyId, dateStr) {
+  showPage('newbooking');
+  setTimeout(()=>{
+    document.getElementById('nb-property').value = propertyId;
+    onPropertyChange();
+    if(dateStr){ document.getElementById('nb-checkin').value=dateStr; document.getElementById('nb-checkout').value=addDay(dateStr,1); }
+    showToast('✅ Property & date pre-filled!');
+  },100);
+}
+
+// ============================================================
+// BOOKINGS LIST
+// ============================================================
+let bFilter='all';
+function filterBookings(f,el){bFilter=f;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderBookings(f);}
+function renderBookings(filter){
+  const td=todayStr();
+  let list=[...bookings].sort((a,b)=>String(a.checkin).localeCompare(String(b.checkin)));
+  if(filter==='upcoming')   list=list.filter(b=>b.checkin>=td&&b.status!=='cancelled');
+  else if(filter==='checkedin') list=list.filter(b=>(b.checkin<=td&&b.checkout>=td&&b.status!=='cancelled'&&b.status!=='completed')||b.status==='checked_in');
+  else if(filter==='balance')   list=list.filter(b=>b.balance>0&&b.status!=='cancelled');
+  else if(filter==='completed') list=list.filter(b=>b.status==='completed');
+  else list=list.filter(b=>b.status!=='cancelled');
+  if(!list.length){document.getElementById('bookings-list').innerHTML='<div class="empty-state"><div class="empty-state-icon">📋</div><p>No bookings found</p></div>';return;}
+  document.getElementById('bookings-list').innerHTML=list.map(b=>{
+    var u = b.units&&b.units.length ? ' - '+b.units.join(', ') : '';
+    var nights = Math.round((new Date(b.checkout+'T12:00:00')-new Date(b.checkin+'T12:00:00'))/(1000*60*60*24));
+    var food    = Number(b.extra_food||b.extraFood)||0;
+    var cook    = Number(b.extra_cook||b.extraCook)||0;
+    var bedding = Number(b.extra_bedding||b.extraBedding)||0;
+    var damage  = Number(b.extra_damage||b.extraDamage)||0;
+    var other   = Number(b.extra_other||b.extraOther)||0;
+    var extras  = food+cook+bedding+damage+other;
+    var sec     = Number(b.security)||0;
+
+    // AUTO STATUS BY DATE
+    var autoStatus = b.status || 'confirmed';
+    if(b.status !== 'cancelled' && b.status !== 'completed') {
+      if(td > b.checkout)       autoStatus = 'overdue';   // past checkout = overdue
+      else if(td >= b.checkin && td <= b.checkout) autoStatus = 'checked_in'; // currently staying
+      else                       autoStatus = 'confirmed'; // future
+    }
+
+    var statusColors = {'confirmed':'#F59E0B','checked_in':'#3B82F6','overdue':'#EF4444','completed':'#10B981','cancelled':'#9CA3AF'};
+    var statusLabels = {'confirmed':'Upcoming','checked_in':'Staying','overdue':'Overdue','completed':'Closed','cancelled':'Cancelled'};
+    var sColor = statusColors[autoStatus] || '#6B7280';
+    var sLabel = statusLabels[autoStatus] || autoStatus;
+    var borderColor = autoStatus==='checked_in'?'#3B82F6':autoStatus==='overdue'?'#EF4444':b.balance>0?'#F59E0B':'#E5E7EB';
+
+    // Caretaker
+    var caretakers = {'Rock Project':'Lallan','Sunhera':'Umesh','Triveni Jewels':'Rohit','Leela House 1':'Mukesh','Leela House 2':'Mukesh','Amalia House':'Jyoti','Hogwarts':'Meena'};
+    var caretaker = caretakers[b.property] || '';
+
+    // Airbnb block
+    var ablocked = b.airbnb_blocked || 'pending';
+    var abLabel = ablocked==='blocked' ? 'Airbnb Blocked' : ablocked==='not_required' ? '' : ablocked==='unblocked' ? 'Unblock Needed' : 'Block Airbnb!';
+    var abColor = ablocked==='blocked' ? '#10B981' : ablocked==='unblocked' ? '#EF4444' : '#F59E0B';
+    var abPrefix = ablocked==='blocked' ? 'OK ' : ablocked==='unblocked' ? 'X ' : '! ';
+
+    // Booked on date
+    var bookedOn = '';
+    if(b.created_at) bookedOn = fmtDate(b.created_at.substring(0,10));
+    else if(b.createdAt) bookedOn = fmtDate(b.createdAt.substring(0,10));
+    // Short Booking ID - last 6 chars of id
+    var bookingId = 'QOP-' + String(b.id).slice(-6).toUpperCase();
+
+    // Build action buttons using string concat to avoid nested backtick issues
+    var actionBtns = '';
+    if(autoStatus==='confirmed') {
+      var balTxt = b.balance>0 ? ' - Collect '+fmtMoney(b.balance) : '';
+      actionBtns += '<button class="action-btn" style="background:#2563EB;color:white;border:1.5px solid #2563EB;font-weight:800" onclick="openCheckinModal('' + b.id + '')">Check In' + balTxt + '</button>';
+      actionBtns += '<button class="action-btn" style="background:#F0FDF4;color:#16A34A;border:1.5px solid #86EFAC" onclick="triggerProofUpload('' + b.id + '','advance')">Pay Proof</button>';
+      actionBtns += '<button class="action-btn wa" onclick="shareToWhatsApp('' + b.id + '')">WA</button>';
+      actionBtns += '<button class="action-btn edit" onclick="editBooking('' + b.id + '')">Edit</button>';
+      actionBtns += '<button class="action-btn cancel" onclick="openCancelModal('' + b.id + '')">Cancel</button>';
+      actionBtns += '<button class="action-btn cancel" onclick="deleteBk('' + b.id + '')">Del</button>';
+    } else if(autoStatus==='checked_in'||autoStatus==='overdue') {
+      actionBtns += '<button class="action-btn" style="background:#F0FDF4;color:#16A34A;border:1.5px solid #86EFAC;font-weight:800" onclick="openCheckoutModal('' + b.id + '')">Check Out</button>';
+      actionBtns += '<button class="action-btn" style="background:#F0FDF4;color:#16A34A;border:1.5px solid #86EFAC" onclick="triggerProofUpload('' + b.id + '','balance')">Pay Proof</button>';
+      actionBtns += '<button class="action-btn wa" onclick="shareToWhatsApp('' + b.id + '')">WA</button>';
+      actionBtns += '<button class="action-btn edit" onclick="editBooking('' + b.id + '')">Edit</button>';
+    } else if(autoStatus==='completed') {
+      actionBtns += '<button class="action-btn wa" onclick="shareToWhatsApp('' + b.id + '')">WA</button>';
+      actionBtns += '<button class="action-btn cancel" onclick="deleteBk('' + b.id + '')">Delete</button>';
+    }
+
+    // Build proof links
+    var proofHtml = '';
+    if(b.proof_advance || b.proof_balance) {
+      proofHtml = '<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px">PAYMENT PROOFS</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+      if(b.proof_advance) proofHtml += '<a href="' + b.proof_advance + '" target="_blank" style="font-size:11px;color:#2563EB;text-decoration:none;background:#EFF6FF;padding:4px 10px;border-radius:6px;border:1px solid #93C5FD">Advance Proof</a>';
+      if(b.proof_balance) proofHtml += '<a href="' + b.proof_balance + '" target="_blank" style="font-size:11px;color:#16A34A;text-decoration:none;background:#F0FDF4;padding:4px 10px;border-radius:6px;border:1px solid #86EFAC">Balance Proof</a>';
+      proofHtml += '</div></div>';
+    }
+
+    // Build extras line
+    var extrasHtml = '';
+    if(extras>0) {
+      extrasHtml = '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Extras: <b>' + fmtMoney(extras) + '</b>';
+      if(food>0) extrasHtml += ' Food Rs'+food;
+      if(cook>0) extrasHtml += ' Cook Rs'+cook;
+      if(bedding>0) extrasHtml += ' Bedding Rs'+bedding;
+      if(damage>0) extrasHtml += ' Damage Rs'+damage;
+      extrasHtml += '</div>';
+    }
+
+    // Build airbnb block indicator
+    var abHtml = '';
+    if(ablocked !== 'not_required') {
+      abHtml = '<span style="font-size:10px;font-weight:700;color:' + abColor + ';cursor:pointer;display:block;margin-bottom:2px" onclick="toggleAirbnbBlock('' + b.id + '')">' + abPrefix + abLabel + '</span>';
+    }
+
+    // Build full card HTML using string concat
+    var html = '<div class="booking-item" style="border-radius:12px;border-left:4px solid ' + borderColor + ';margin-bottom:12px">';
+
+    // Top row
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">';
+    html += '<div><div style="font-size:17px;font-weight:800;color:var(--forest)">' + b.guest + '</div>';
+    html += '<div style="font-size:10px;color:var(--muted)">' + bookingId + ' | ' + (bookedOn?'Booked: '+bookedOn+' |':'') + ' By ' + (b.bookedBy||b.booked_by||'') + '</div></div>';
+    html += '<div style="text-align:right"><span style="background:' + sColor + '18;color:' + sColor + ';border:1.5px solid ' + sColor + '40;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:block;margin-bottom:4px">' + sLabel + '</span>' + abHtml + '</div>';
+    html += '</div>';
+
+    // Property + dates
+    html += '<div style="font-size:12px;font-weight:600;color:var(--river);margin-bottom:4px">';
+    html += b.property + u + ' | ' + fmtDate(b.checkin) + ' to ' + fmtDate(b.checkout) + ' | ' + nights + ' Nights';
+    html += '</div>';
+
+    // Contact row
+    html += '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">';
+    html += b.phone;
+    if(b.people) html += ' | ' + b.people + ' pax';
+    html += ' | ' + (b.source||'Direct');
+    if(caretaker) html += ' | Caretaker: ' + caretaker;
+    html += '</div>';
+
+    // Money grid
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">';
+    html += '<div style="background:#F0FDF4;border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--muted);font-weight:600">TOTAL</div><div style="font-size:16px;font-weight:800;color:var(--forest)">' + fmtMoney(b.total) + '</div></div>';
+    html += '<div style="background:#EFF6FF;border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--muted);font-weight:600">ADVANCE</div><div style="font-size:16px;font-weight:800;color:#2563EB">' + fmtMoney(b.advance) + '</div><div style="font-size:9px;color:var(--muted)">' + (b.paymode||'UPI') + '</div></div>';
+    html += '<div style="background:' + (b.balance>0?'#FEF2F2':'#F0FDF4') + ';border-radius:8px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--muted);font-weight:600">BALANCE</div><div style="font-size:16px;font-weight:800;color:' + (b.balance>0?'var(--danger)':'var(--success)') + '">' + fmtMoney(b.balance) + '</div><div style="font-size:9px;color:' + (b.balance>0?'var(--danger)':'var(--success)') + '">' + (b.balance===0?'Paid':'Due at Check In') + '</div></div>';
+    html += '</div>';
+
+    // Security
+    if(sec>0) html += '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Security: <b>' + fmtMoney(sec) + '</b> (' + (b.sec_paymode||b.secPaymode||'') + ')</div>';
+
+    // Extras
+    html += extrasHtml;
+
+    // Notes
+    if(b.notes) html += '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Notes: ' + b.notes + '</div>';
+
+    // Proofs
+    html += proofHtml;
+
+    // Actions
+    html += '<div class="action-row">' + actionBtns + '</div>';
+    html += '</div>';
+
+    return html;
+  }).join('');
+}
+async function markPaid(id){
+  const b=bookings.find(x=>x.id===id);if(!b)return;
+  try{
+    await insertCash({id:Date.now().toString(),type:'balance',property:b.property,desc:'Balance from '+b.guest,amount:b.balance,by:'Caretaker',date:todayStr()});
+    await updateBooking(id,{balance:0});
+    renderBookings(bFilter);showToast('Balance marked received ✅');
+  }catch(e){showToast('❌ '+e.message,true);}
+}
+function openCancelModal(id) {
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  document.getElementById('canc-id').value = id;
+  document.getElementById('canc-refund').value = '';
+  document.getElementById('canc-notes').value = '';
+  document.getElementById('canc-info').innerHTML = `<b>${b.guest}</b> · ${b.property} · ${fmtDate(b.checkin)}→${fmtDate(b.checkout)}<br>Advance paid: <b>${fmtMoney(b.advance)}</b>`;
+  document.getElementById('cancel-modal').classList.add('open');
+}
+
+async function saveCancel() {
+  const id     = document.getElementById('canc-id').value;
+  const reason = document.getElementById('canc-reason').value;
+  const refund = parseFloat(document.getElementById('canc-refund').value)||0;
+  const notes  = document.getElementById('canc-notes').value;
+  const b = bookings.find(x=>x.id===id);
+  try {
+    await updateBooking(id, { status:'cancelled', cancel_reason: reason, cancel_refund: refund, notes: (b.notes?b.notes+' | ':'')+notes });
+    if(refund>0) await insertCash({id:Date.now().toString()+'cr',type:'refund',property:b.property,desc:`Cancellation refund to ${b.guest}`,amount:refund,by:'Front Desk',date:todayStr()});
+    document.getElementById('cancel-modal').classList.remove('open');
+    renderBookings(bFilter);
+    showToast('Booking cancelled');
+    // Prompt to unblock Airbnb if not an Airbnb booking
+    if(b.source !== 'Airbnb' && b.airbnb_blocked === 'blocked') {
+      setTimeout(()=>{
+        if(confirm('Booking cancelled! \n\n🏠 UNBLOCK dates on Airbnb?\n\n'+b.property+' · '+fmtDate(b.checkin)+' → '+fmtDate(b.checkout)+'\n\nGo to Airbnb and unblock these dates so you can take new bookings.')) {
+          updateBooking(b.id, {airbnb_blocked:'unblocked'});
+          showToast('⚠️ Go unblock dates on Airbnb app now!');
+        }
+      }, 500);
+    }
+  } catch(e) { showToast('❌ '+e.message, true); }
+}
+
+async function deleteBk(id) {
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  if(!confirm(`Permanently DELETE booking for ${b.guest}?
+
+This cannot be undone!`)) return;
+  try {
+    await sbFetch('bookings?id=eq.'+id, { method:'DELETE', headers:{'Prefer':'return=minimal'} });
+    bookings = bookings.filter(x=>x.id!==id);
+    renderBookings(bFilter);
+    showToast('🗑️ Booking deleted');
+  } catch(e) { showToast('❌ '+e.message, true); }
+}
+
+async function cancelBk(id){
+  openCancelModal(id);
+}
+
+// ============================================================
+// CASH
+// ============================================================
+function renderCash(){
+  const inT=['balance','security','food','extra','collection'];
+  const tIn=cashEntries.filter(e=>inT.includes(e.type)).reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const tExp=cashEntries.filter(e=>e.type==='expense').reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const tSec=cashEntries.filter(e=>e.type==='security').reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const tRef=cashEntries.filter(e=>e.type==='refund').reduce((s,e)=>s+(Number(e.amount)||0),0);
+  document.getElementById('cs-collected').textContent=fmtMoney(tIn);
+  document.getElementById('cs-expenses').textContent=fmtMoney(tExp);
+  document.getElementById('cs-security').textContent=fmtMoney(tSec);
+  document.getElementById('cs-net').textContent=fmtMoney(tIn-tExp-tRef);
+  const icons={balance:'💵',security:'🔒',food:'🍽️',extra:'⚡',expense:'🛒',collection:'🚗',refund:'↩️'};
+  const labels={balance:'Balance',security:'Security',food:'Food Bill',extra:'Extras',expense:'Expense',collection:'FM Collection',refund:'Sec Refund'};
+  const isOut=t=>['expense','refund'].includes(t);
+  const entries=[...cashEntries].reverse();
+  if(!entries.length){document.getElementById('cash-entries-list').innerHTML='<div class="empty-state"><div class="empty-state-icon">💰</div><p>No entries yet</p></div>';return;}
+  document.getElementById('cash-entries-list').innerHTML=entries.map(e=>`
+    <div class="cash-entry">
+      <div class="cash-icon ${isOut(e.type)?'out':'in'}">${icons[e.type]||'💰'}</div>
+      <div class="cash-details"><div class="cash-desc">${labels[e.type]||e.type} · ${e.property}</div><div class="cash-sub">${e.desc||e.description||''} · ${e.by||e.logged_by||''} · ${fmtDate(e.date)}</div></div>
+      <div class="cash-amount ${isOut(e.type)?'out':'in'}">${isOut(e.type)?'-':'+'} ${fmtMoney(e.amount)}</div>
+    </div>`).join('');
+}
+function openCashModal(){document.getElementById('cash-modal').classList.add('open');}
+function closeCashModal(){document.getElementById('cash-modal').classList.remove('open');}
+async function submitCash(){
+  const type=document.getElementById('cm-type').value,property=document.getElementById('cm-property').value;
+  const desc=document.getElementById('cm-desc').value.trim(),amount=parseFloat(document.getElementById('cm-amount').value)||0;
+  const by=document.getElementById('cm-by').value.trim();
+  if(!desc||!amount){showToast('Fill description and amount',true);return;}
+  try{
+    await insertCash({id:Date.now().toString(),type,property,desc,amount,by:by||'Staff',date:todayStr()});
+    closeCashModal();renderCash();showToast('Cash entry added ✅');
+    document.getElementById('cm-desc').value='';document.getElementById('cm-amount').value='';document.getElementById('cm-by').value='';
+  }catch(e){showToast('❌ '+e.message,true);}
+}
+
+// ============================================================
+// NEW BOOKING
+// ============================================================
+function resetBookingForm(){
+  pickedUnits=[];
+  ['nb-guest','nb-phone','nb-checkin','nb-checkout','nb-total','nb-advance','nb-balance','nb-notes','nb-people'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nb-property').value='';
+  document.getElementById('nb-unit-section').style.display='none';
+  document.getElementById('nb-unit-tiles').innerHTML='';
+  document.getElementById('nb-unit-summary').textContent='Tap to select units';
+  document.getElementById('nb-conflict').style.display='none';
+  const btn=document.getElementById('nb-submit-btn');btn.disabled=false;btn.textContent='✅ Confirm Booking';
+}
+
+function onPropertyChange(){
+  pickedUnits=[];
+  const prop=document.getElementById('nb-property').value;
+  if(prop==='Rock Project'){document.getElementById('nb-unit-section').style.display='block';buildUnitTiles();}
+  else document.getElementById('nb-unit-section').style.display='none';
+  checkBookingConflict();
+}
+
+function buildUnitTiles(){
+  const cin=document.getElementById('nb-checkin').value,cout=document.getElementById('nb-checkout').value;
+  const bu=new Set();
+  if(cin&&cout) bookings.forEach(b=>{if(b.property==='Rock Project'&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,cin,cout)&&b.units)b.units.forEach(u=>bu.add(u));});
+  pickedUnits=pickedUnits.filter(u=>!bu.has(u));
+  document.getElementById('nb-unit-tiles').innerHTML=ROCK_UNITS.map(u=>{
+    if(bu.has(u))return`<div class="unit-tile booked-out">🚫 ${u}</div>`;
+    const sel=pickedUnits.includes(u);
+    return`<div class="unit-tile ${sel?'selected':''}" id="tile-${u.replace(/ /g,'_')}" onclick="tapUnit('${u}')">${u}</div>`;
+  }).join('');
+  updateUnitSummary();
+}
+
+function tapUnit(unit){
+  const idx=pickedUnits.indexOf(unit);
+  idx===-1?pickedUnits.push(unit):pickedUnits.splice(idx,1);
+  const tile=document.getElementById('tile-'+unit.replace(/ /g,'_'));
+  if(tile) pickedUnits.includes(unit)?tile.classList.add('selected'):tile.classList.remove('selected');
+  updateUnitSummary();
+}
+
+function updateUnitSummary(){
+  const mC=pickedUnits.filter(u=>u.startsWith('Mud')).length,cC=pickedUnits.filter(u=>u.startsWith('Bamboo')).length;
+  let parts=[];if(mC)parts.push(mC+' Mud House'+(mC>1?'s':''));if(cC)parts.push(cC+' Bamboo Cottage'+(cC>1?'s':''));
+  const el=document.getElementById('nb-unit-summary');
+  if(!pickedUnits.length){el.textContent='Tap to select units';el.style.color='var(--muted)';}
+  else{el.textContent='✅ '+parts.join(' + ')+' ('+pickedUnits.length+' selected)';el.style.color='var(--moss)';}
+}
+
+function onDatesChange(){if(document.getElementById('nb-property').value==='Rock Project')buildUnitTiles();checkBookingConflict();}
+function calcBal(){const t=parseFloat(document.getElementById('nb-total').value)||0,a=parseFloat(document.getElementById('nb-advance').value)||0;document.getElementById('nb-balance').value=Math.max(0,t-a);}
+
+function checkBookingConflict(){
+  const prop=document.getElementById('nb-property').value,cin=document.getElementById('nb-checkin').value,cout=document.getElementById('nb-checkout').value;
+  const warn=document.getElementById('nb-conflict');
+  if(!prop||!cin||!cout||prop==='Rock Project'){warn.style.display='none';return;}
+  const cf=bookings.find(b=>b.property===prop&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,cin,cout));
+  if(cf){warn.style.display='block';warn.textContent='⚠️ '+cf.guest+' already booked '+prop+' from '+fmtDate(cf.checkin)+' to '+fmtDate(cf.checkout);}
+  else warn.style.display='none';
+}
+
+async function submitNewBooking(){
+  const guest=document.getElementById('nb-guest').value.trim();
+  const phone=document.getElementById('nb-phone').value.trim();
+  const property=document.getElementById('nb-property').value;
+  const checkin=document.getElementById('nb-checkin').value;
+  const checkout=document.getElementById('nb-checkout').value;
+  const total=parseFloat(document.getElementById('nb-total').value)||0;
+  const advance=parseFloat(document.getElementById('nb-advance').value)||0;
+  const balance=parseFloat(document.getElementById('nb-balance').value)||0;
+  const bookedBy=document.getElementById('nb-bookedby').value;
+  const source=document.getElementById('nb-source').value;
+  const paymode=document.getElementById('nb-paymode').value;
+  const people=document.getElementById('nb-people').value||'';
+  const notes=document.getElementById('nb-notes').value.trim();
+
+  if(!guest)   {showToast('❌ Enter Guest Name',true);return;}
+  if(!phone)   {showToast('❌ Enter Phone Number',true);return;}
+  if(!property){showToast('❌ Select a Property',true);return;}
+  if(!checkin) {showToast('❌ Select Check-in Date',true);return;}
+  if(!checkout){showToast('❌ Select Check-out Date',true);return;}
+  if(checkin>=checkout){showToast('❌ Check-out must be after Check-in',true);return;}
+  if(!total)   {showToast('❌ Enter Total Amount',true);return;}
+  if(property==='Rock Project'&&pickedUnits.length===0){showToast('❌ Select at least one unit',true);return;}
+  if(property!=='Rock Project'){
+    const cf=bookings.find(b=>b.property===property&&b.status!=='cancelled'&&overlap(b.checkin,b.checkout,checkin,checkout));
+    if(cf&&!confirm('⚠️ '+cf.guest+' already booked this property. Book anyway?'))return;
+  }
+
+  const btn=document.getElementById('nb-submit-btn');
+  btn.disabled=true; btn.textContent='⏳ Saving...';
+
+  const booking={
+    id: Date.now().toString(),
+    guest,phone,property,
+    units: property==='Rock Project'?[...pickedUnits]:null,
+    checkin,checkout,total,advance,balance,
+    bookedBy,source,paymode,people,notes,
+    status:'confirmed',
+    airbnb_blocked: source==='Airbnb' ? 'not_required' : 'pending',
+    advPayDate: todayStr(),
+    balReceived:false, balPaymode:'', balPayDate:'',
+    security:0, secPaymode:'', secReceived:false,
+    extraFood:0, extraBedding:0, extraDamage:0, extraOther:0,
+    closedAt:'',
+    createdAt:todayStr()
+  };
+
+  try{
+    await insertBooking(booking);
+    if(advance>0) await insertCash({id:Date.now().toString()+'a',type:'balance',property,desc:'Advance from '+guest,amount:advance,by:bookedBy,date:todayStr()});
+    showToast('✅ Booking confirmed for '+guest+'!');
+    setTimeout(()=>{
+      if(source!=='Airbnb') {
+        if(confirm('🏠 Remember to BLOCK dates on Airbnb!
+
+'+property+' · '+fmtDate(checkin)+' → '+fmtDate(checkout)+'
+
+Have you blocked the dates on Airbnb?')) {
+          updateBooking(booking.id, {airbnb_blocked:'blocked'});
+          showToast('✅ Airbnb dates marked as blocked!');
+        }
+      }
+      if(confirm('Share booking to WhatsApp group?')) shareToWhatsApp(booking.id);
+      showPage('bookings');
+    },1500);
+  }catch(e){
+    console.error(e);
+    showToast('❌ '+e.message,true);
+    btn.disabled=false; btn.textContent='✅ Confirm Booking';
+  }
+}
+
+
+
+
+
+
+
+// ============================================================
+// PAYMENT PROOF UPLOAD
+// ============================================================
+function triggerProofUpload(bookingId, proofType) {
+  document.getElementById('proof-booking-id').value = bookingId;
+  document.getElementById('proof-type').value = proofType;
+  document.getElementById('proof-file-input').value = '';
+  document.getElementById('proof-file-input').click();
+}
+
+async function uploadProof(input) {
+  const file = input.files[0];
+  if(!file) return;
+
+  const bookingId = document.getElementById('proof-booking-id').value;
+  const proofType = document.getElementById('proof-type').value;
+  const b = bookings.find(x=>x.id===bookingId);
+  if(!b) return;
+
+  showToast('⏳ Uploading proof...');
+
+  try {
+    // Create unique filename
+    const ext = file.name.split('.').pop() || 'jpg';
+    const filename = `${bookingId}_${proofType}_${Date.now()}.${ext}`;
+
+    // Upload to Supabase Storage
+    const uploadRes = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/payment-proofs/${filename}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': file.type,
+          'Cache-Control': '3600'
+        },
+        body: file
+      }
+    );
+
+    if(!uploadRes.ok) {
+      const err = await uploadRes.text();
+      throw new Error('Upload failed: ' + err);
+    }
+
+    // Get public URL
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/payment-proofs/${filename}`;
+
+    // Save URL to booking record
+    const field = proofType === 'advance' ? 'proof_advance' : 'proof_balance';
+    await updateBooking(bookingId, { [field]: publicUrl });
+
+    renderBookings(bFilter);
+    showToast('✅ Payment proof uploaded!');
+
+  } catch(e) {
+    console.error('Upload error:', e);
+    showToast('❌ Upload failed: ' + e.message, true);
+  }
+}
+
+// ============================================================
+// BALANCE COLLECTION
+// ============================================================
+function openBalanceModal(id) {
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  document.getElementById('bm-id').value = id;
+  document.getElementById('bm-amount').value = b.balance || 0;
+  document.getElementById('bm-date').value = todayStr();
+  document.getElementById('bm-info').innerHTML =
+    `<b style="font-size:15px">${b.guest}</b><br>
+     🏡 ${b.property}<br>
+     📅 ${fmtDate(b.checkin)} → ${fmtDate(b.checkout)}<br>
+     ⚠️ Balance Due: <b style="color:var(--danger)">${fmtMoney(b.balance)}</b>`;
+  document.getElementById('balance-modal').classList.add('open');
+}
+
+async function saveBalanceCollection() {
+  const id      = document.getElementById('bm-id').value;
+  const amount  = parseFloat(document.getElementById('bm-amount').value)||0;
+  const paymode = document.getElementById('bm-paymode').value;
+  const date    = document.getElementById('bm-date').value;
+  const b = bookings.find(x=>x.id===id);
+
+  if(!amount) { showToast('❌ Enter amount', true); return; }
+
+  try {
+    const newBalance = Math.max(0, (Number(b.balance)||0) - amount);
+    await updateBooking(id, {
+      balance: newBalance,
+      bal_received: newBalance === 0,
+      bal_paymode: paymode,
+      bal_pay_date: date
+    });
+    await insertCash({
+      id: Date.now().toString()+'bal',
+      type: 'balance',
+      property: b.property,
+      desc: 'Balance from '+b.guest,
+      amount, by: 'Front Desk', date
+    });
+    document.getElementById('balance-modal').classList.remove('open');
+    renderBookings(bFilter);
+    showToast('✅ Balance of '+fmtMoney(amount)+' collected!');
+  } catch(e) { showToast('❌ '+e.message, true); }
+}
+
+// ============================================================
+// AIRBNB BLOCK TOGGLE
+// ============================================================
+async function toggleAirbnbBlock(id) {
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  const current = b.airbnb_blocked || 'pending';
+
+  if(current === 'pending' || current === 'unblocked') {
+    // Mark as blocked
+    if(confirm(`Mark Airbnb dates BLOCKED for ${b.guest}?
+${b.property} · ${fmtDate(b.checkin)} → ${fmtDate(b.checkout)}`)) {
+      await updateBooking(id, { airbnb_blocked: 'blocked' });
+      renderBookings(bFilter);
+      showToast('✅ Airbnb dates marked as blocked!');
+    }
+  } else if(current === 'blocked') {
+    // Already blocked — ask to unblock
+    if(confirm(`Unblock Airbnb dates for ${b.property}?
+${fmtDate(b.checkin)} → ${fmtDate(b.checkout)}
+
+This means the dates will be available on Airbnb again.`)) {
+      await updateBooking(id, { airbnb_blocked: 'unblocked' });
+      renderBookings(bFilter);
+      showToast('⚠️ Airbnb dates marked as unblocked — go unblock on Airbnb!');
+    }
+  }
+}
+
+// ============================================================
+// CHECK-IN / CHECK-OUT
+// ============================================================
+function openCheckinModal(id) {
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  document.getElementById('ci-id').value = id;
+  document.getElementById('ci-balance').value = b.balance || 0;
+  document.getElementById('ci-security').value = '';
+  document.getElementById('ci-id-status').value = 'yes';
+  document.getElementById('ci-id-type').value = 'Aadhaar';
+  document.getElementById('ci-summary').style.display = 'none';
+  const nights = Math.round((new Date(b.checkout+'T12:00:00')-new Date(b.checkin+'T12:00:00'))/(1000*60*60*24));
+  document.getElementById('ci-guest-info').innerHTML =
+    `<b style="font-size:15px">${b.guest}</b><br>
+     🏡 ${b.property}${b.units&&b.units.length?' · '+b.units.join(', '):''}<br>
+     📅 ${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nights} Nights<br>
+     ⚠️ Balance Due: <b style="color:var(--danger)">${fmtMoney(b.balance)}</b>`;
+  document.getElementById('checkin-modal').classList.add('open');
+}
+
+async function saveCheckin() {
+  const id         = document.getElementById('ci-id').value;
+  const balance    = parseFloat(document.getElementById('ci-balance').value)||0;
+  const balPaymode = document.getElementById('ci-bal-paymode').value;
+  const security   = parseFloat(document.getElementById('ci-security').value)||0;
+  const secPaymode = document.getElementById('ci-sec-paymode').value;
+  const idCollected= document.getElementById('ci-id-status').value;
+  const idType     = document.getElementById('ci-id-type').value;
+  const b = bookings.find(x=>x.id===id);
+
+  try {
+    const changes = {
+      status: 'checked_in',
+      balance: 0,              // Balance fully collected at check-in
+      bal_received: true,
+      bal_paymode: balPaymode,
+      bal_pay_date: todayStr(),
+      security,
+      sec_paymode: secPaymode,
+      sec_received: security > 0,
+      id_collected: idCollected,
+      id_type: idType,
+      checkin_date: todayStr()
+    };
+    await updateBooking(id, changes);
+    if(balance>0) await insertCash({id:Date.now().toString()+'b',type:'balance',property:b.property,desc:'Balance collected at Check-in from '+b.guest+' ('+balPaymode+')',amount:balance,by:'Front Desk',date:todayStr()});
+    if(security>0) await insertCash({id:Date.now().toString()+'s',type:'security',property:b.property,desc:'Security from '+b.guest,amount:security,by:'Front Desk',date:todayStr()});
+    document.getElementById('checkin-modal').classList.remove('open');
+    renderBookings(bFilter);
+    showToast('✅ '+b.guest+' Checked In!');
+    if(confirm('Share check-in details to WhatsApp group?')) shareToWhatsApp(id);
+  } catch(e) { showToast('❌ '+e.message, true); }
+}
+
+function openCheckoutModal(id) {
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  document.getElementById('co-id').value = id;
+  ['co-food','co-cook','co-bedding','co-damage','co-other','co-refund-amt'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; });
+  document.getElementById('co-sec-action').value = 'adjusted';
+  document.getElementById('co-refund-row').style.display = 'none';
+  const sec = Number(b.security)||0;
+  document.getElementById('co-guest-info').innerHTML =
+    `<b style="font-size:15px">${b.guest}</b><br>
+     🏡 ${b.property}<br>
+     📅 ${fmtDate(b.checkin)} → ${fmtDate(b.checkout)}<br>
+     🔒 Security Held: <b style="color:var(--forest)">${fmtMoney(sec)}</b>`;
+  updateCoSummary();
+  document.getElementById('checkout-modal').classList.add('open');
+}
+
+function updateCoSummary() {
+  const id = document.getElementById('co-id').value;
+  const b = bookings.find(x=>x.id===id); if(!b) return;
+  const sec      = Number(b.security)||0;
+  const food     = parseFloat(document.getElementById('co-food').value)||0;
+  const cook     = parseFloat(document.getElementById('co-cook').value)||0;
+  const bedding  = parseFloat(document.getElementById('co-bedding').value)||0;
+  const damage   = parseFloat(document.getElementById('co-damage').value)||0;
+  const other    = parseFloat(document.getElementById('co-other').value)||0;
+  const extras   = food+cook+bedding+damage+other;
+  const secAction= document.getElementById('co-sec-action').value;
+
+  // Show/hide refund row
+  const refundRow = document.getElementById('co-refund-row');
+  refundRow.style.display = secAction==='refund_partial' ? 'block' : 'none';
+
+  // Calculate settlement
+  let settlement = '';
+  let guestPays = 0;
+  let refundAmt = 0;
+
+  if(secAction==='adjusted') {
+    if(extras <= sec) {
+      refundAmt = sec - extras;
+      settlement = refundAmt > 0
+        ? `Security ₹${sec} - Extras ₹${extras} = <b>Refund ₹${refundAmt} to guest</b>`
+        : `Security fully adjusted against extras`;
+    } else {
+      guestPays = extras - sec;
+      settlement = `Extras ₹${extras} - Security ₹${sec} = <b>Guest pays ₹${guestPays} more</b>`;
+    }
+  } else if(secAction==='refund_full') {
+    settlement = `<b>Refund full security ₹${sec} to guest</b>`;
+    refundAmt = sec;
+  } else if(secAction==='refund_partial') {
+    refundAmt = parseFloat(document.getElementById('co-refund-amt').value)||0;
+    settlement = `<b>Refund ₹${refundAmt} to guest</b>`;
+  } else if(secAction==='kept') {
+    settlement = `Security ₹${sec} kept`;
+  } else {
+    settlement = `No security`;
+  }
+
+  const summary = document.getElementById('co-summary');
+  summary.innerHTML = `
+    <div style="display:flex;justify-content:space-between"><span>🍽️ Food</span><span>₹${food}</span></div>
+    <div style="display:flex;justify-content:space-between"><span>🍳 Cook</span><span>₹${cook}</span></div>
+    <div style="display:flex;justify-content:space-between"><span>🛏️ Bedding</span><span>₹${bedding}</span></div>
+    <div style="display:flex;justify-content:space-between"><span>🔨 Damage</span><span>₹${damage}</span></div>
+    <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.2);padding-top:6px;margin-top:4px"><span><b>Total Extras</b></span><span><b>₹${extras}</b></span></div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.2);font-size:12px;color:#86EFAC">${settlement}</div>
+  `;
+}
+
+async function saveCheckout() {
+  const id       = document.getElementById('co-id').value;
+  const food     = parseFloat(document.getElementById('co-food').value)||0;
+  const cook     = parseFloat(document.getElementById('co-cook').value)||0;
+  const bedding  = parseFloat(document.getElementById('co-bedding').value)||0;
+  const damage   = parseFloat(document.getElementById('co-damage').value)||0;
+  const other    = parseFloat(document.getElementById('co-other').value)||0;
+  const foodMode = document.getElementById('co-food-mode').value;
+  const secAction= document.getElementById('co-sec-action').value;
+  const b = bookings.find(x=>x.id===id);
+  const extras = food+cook+bedding+damage+other;
+  const sec = Number(b.security)||0;
+
+  let refundAmt = 0;
+  if(secAction==='refund_full') refundAmt = sec;
+  else if(secAction==='refund_partial') refundAmt = parseFloat(document.getElementById('co-refund-amt').value)||0;
+  else if(secAction==='adjusted' && extras < sec) refundAmt = sec - extras;
+
+  try {
+    const changes = {
+      status: 'completed',
+      extra_food: food,
+      extra_cook: cook,
+      extra_bedding: bedding,
+      extra_damage: damage,
+      extra_other: other,
+      sec_action: secAction,
+      sec_refund_amt: refundAmt,
+      closed_at: todayStr()
+    };
+    await updateBooking(id, changes);
+
+    // Log cash entries
+    if(extras>0) await insertCash({id:Date.now().toString()+'e',type:'extra',property:b.property,desc:`Extras: Food₹${food} Cook₹${cook} Bedding₹${bedding} Damage₹${damage} - ${b.guest}`,amount:extras,by:'Front Desk',date:todayStr()});
+    if(refundAmt>0) await insertCash({id:Date.now().toString()+'r',type:'refund',property:b.property,desc:`Security refund to ${b.guest}`,amount:refundAmt,by:'Front Desk',date:todayStr()});
+
+    document.getElementById('checkout-modal').classList.remove('open');
+    renderBookings(bFilter);
+    showToast('✅ Booking Closed!');
+    if(confirm('Share checkout summary to WhatsApp group?')) shareToWhatsApp(id);
+  } catch(e) { showToast('❌ '+e.message, true); }
+}
+
+// ============================================================
+// EXCEL EXPORT
+// ============================================================
+function exportToExcel() {
+  const headers = ['Guest','Phone','Property','Units','Check-in','Check-out','Nights','Total','Advance','Adv Mode','Balance','Bal Received','Bal Mode','Security','Sec Received','Food','Bedding','Damage','Other Extras','Source','People','Booked By','Status','Notes','Closed Date'];
+  
+  const rows = bookings
+    .filter(b => b.status !== 'cancelled')
+    .map(b => {
+      const nights = Math.round((new Date(b.checkout) - new Date(b.checkin)) / (1000*60*60*24));
+      return [
+        b.guest || '',
+        b.phone || '',
+        b.property || '',
+        b.units ? b.units.join(', ') : '',
+        b.checkin || '',
+        b.checkout || '',
+        nights || '',
+        b.total || 0,
+        b.advance || 0,
+        b.paymode || 'UPI',
+        b.balance || 0,
+        b.balReceived || b.bal_received ? 'Yes' : 'No',
+        b.balPaymode || b.bal_paymode || '',
+        b.security || 0,
+        b.secReceived || b.sec_received ? 'Yes' : 'No',
+        b.extraFood || b.extra_food || 0,
+        b.extraBedding || b.extra_bedding || 0,
+        b.extraDamage || b.extra_damage || 0,
+        b.extraOther || b.extra_other || 0,
+        b.source || 'Direct',
+        b.people || '',
+        b.bookedBy || b.booked_by || '',
+        b.status || '',
+        b.notes || '',
+        b.closedAt || b.closed_at || ''
+      ];
+    });
+
+  // Build CSV
+  const csvRows = [headers, ...rows];
+  const csv = csvRows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'Qintara_Bookings_' + todayStr() + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Excel file downloaded!');
+}
+
+// ============================================================
+// WHATSAPP SHARE
+// ============================================================
+function shareToWhatsApp(id) {
+  const b = bookings.find(x => x.id === id);
+  if(!b) return;
+
+  const nights = Math.round((new Date(b.checkout) - new Date(b.checkin)) / (1000*60*60*24));
+  const unitStr = b.units && b.units.length ? '\n🏠 Units: ' + b.units.join(', ') : '';
+  const balStr  = b.balance > 0 ? '\n⚠️ Balance Due: ₹' + b.balance : '\n✅ Fully Paid';
+
+  const msg =
+`✅ *New Booking — ${b.property}*
+
+👤 Guest: ${b.guest}
+📞 Phone: ${b.phone}
+📅 Check-in: ${fmtDate(b.checkin)}
+📅 Check-out: ${fmtDate(b.checkout)}
+🌙 Nights: ${nights}${unitStr}
+💰 Total: ${fmtMoney(b.total)}
+✅ Advance: ${fmtMoney(b.advance)}${balStr}
+🔖 Source: ${b.source || 'Direct'}
+👤 Booked By: ${b.bookedBy || b.booked_by || ''}
+${b.notes ? '📝 Notes: ' + b.notes : ''}
+
+_Sent from Qintara Ops_`;
+
+  const encoded = encodeURIComponent(msg);
+  window.open('https://wa.me/?text=' + encoded, '_blank');
+}
+
+// ============================================================
+// EDIT BOOKING
+// ============================================================
+function editBooking(id) {
+  const b = bookings.find(x => x.id === id);
+  if(!b) return;
+  document.getElementById('edit-id').value       = id;
+  document.getElementById('edit-guest').value    = b.guest || '';
+  document.getElementById('edit-phone').value    = b.phone || '';
+  document.getElementById('edit-property').value = b.property || '';
+  document.getElementById('edit-checkin').value  = b.checkin || '';
+  document.getElementById('edit-checkout').value = b.checkout || '';
+  document.getElementById('edit-total').value    = b.total || '';
+  document.getElementById('edit-advance').value  = b.advance || '';
+  document.getElementById('edit-balance').value  = b.balance || '';
+  document.getElementById('edit-source').value   = b.source || 'Direct';
+  document.getElementById('edit-notes').value    = b.notes || '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+function editCalcBal() {
+  const t = parseFloat(document.getElementById('edit-total').value)||0;
+  const a = parseFloat(document.getElementById('edit-advance').value)||0;
+  document.getElementById('edit-balance').value = Math.max(0, t-a);
+}
+
+async function saveEditBooking() {
+  const id      = document.getElementById('edit-id').value;
+  const guest   = document.getElementById('edit-guest').value.trim();
+  const phone   = document.getElementById('edit-phone').value.trim();
+  const checkin = document.getElementById('edit-checkin').value;
+  const checkout= document.getElementById('edit-checkout').value;
+  const total   = parseFloat(document.getElementById('edit-total').value)||0;
+  const advance = parseFloat(document.getElementById('edit-advance').value)||0;
+  const balance = parseFloat(document.getElementById('edit-balance').value)||0;
+  const source  = document.getElementById('edit-source').value;
+  const notes   = document.getElementById('edit-notes').value.trim();
+
+  if(!guest)    { showToast('❌ Enter Guest Name', true); return; }
+  if(!phone)    { showToast('❌ Enter Phone Number', true); return; }
+  if(!checkin)  { showToast('❌ Select Check-in Date', true); return; }
+  if(!checkout) { showToast('❌ Select Check-out Date', true); return; }
+  if(checkin >= checkout) { showToast('❌ Check-out must be after Check-in', true); return; }
+
+  const changes = { guest, phone, checkin, checkout, total, advance, balance, source, notes };
+
+  try {
+    await updateBooking(id, changes);
+    closeEditModal();
+    renderBookings(bFilter);
+    showToast('✅ Booking updated!');
+  } catch(e) {
+    showToast('❌ ' + e.message, true);
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  document.getElementById('headerDate').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  gridStartOffset=0;
+  try {
+    showToast('⏳ Loading...');
+    await loadData();
+    renderAvailability();
+    showToast('✅ Data loaded — '+bookings.length+' bookings');
+  } catch(e) {
+    console.error('INIT ERROR:', e);
+    document.getElementById('avail-grid').innerHTML =
+      `<div style="padding:20px;color:red;font-size:13px;background:#FEF2F2;border-radius:10px;margin:10px">
+        ❌ Error loading data:<br><b>${e.message}</b><br><br>
+        Check browser Console (F12) for details.
+      </div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
